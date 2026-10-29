@@ -1,0 +1,27 @@
+{
+  "name": "@local/dsh-tier-kit",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Tiered Claude delegation for DeepSeek Harness: a `tiered` agent preset with pinned Haiku/Sonnet/Opus subagent tools, a difficulty-routing policy prompt, and a cheap-tier high-impact action guard.",
+  "license": "MIT",
+  "main": "./lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./package.json": "./package.json"
+  },
+  "files": ["lib", "templates", "cordis.patch.yml", "README.md"],
+  "engines": {
+    "node": "^22.19 || >=24",
+    "dsh": ">=0.2.1-rc.3"
+  },
+  "scripts": {
+    "test": "node --test test/",
+    "check": "node --check lib/index.js && node --check lib/rules.js"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  }
+}
