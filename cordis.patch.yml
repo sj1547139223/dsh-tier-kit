@@ -1,19 +1,25 @@
-# dsh-tier-kit bundle: declares the `tiered` agent preset.
+# dsh-tier-kit bundle: a Host settings row and the `tiered` agent preset.
 #
-# Base: the `standard` preset shipped with @deepseek-ai/dsh-web-app 0.2.1-rc.3
-# (presets/standard.patch.yml). Differences from standard, all inside this file:
+# Host row `tier-kit` (@local/dsh-tier-kit): live, volatile model route per tier,
+# edited on the Plugins page (client.js) and persisted to the profile patch.
+#
+# Preset base: the `standard` preset shipped with @deepseek-ai/dsh-web-app
+# 0.2.1-rc.3 (presets/standard.patch.yml). Differences from standard:
 #   - delegation: the generic `subagent` row (modelSelectionSettings) is replaced
-#     by three pinned tools: subagent_haiku / subagent_sonnet / subagent_opus.
-#     `subagent_fork` and the workflow engine are kept.
-#   - tier-kit: tier policy prompt + cheap-tier high-impact guard.
+#     by the tier-kit-agent row, which mounts subagent_worker / subagent_reviewer
+#     / subagent_arbiter from the Host settings and adds the tier policy prompt
+#     and the cheap-tier high-impact guard. `subagent_fork` and the workflow
+#     engine are kept.
 # After a DSH upgrade, diff the shipped standard preset against this list.
 - insert:
+    - id: tier-kit
+      name: '@local/dsh-tier-kit'
     - id: preset-tiered
       name: '@deepseek-ai/dsh-agent-preset'
       config:
         id: tiered
-        name: Tiered (Opus / Sonnet / Haiku)
-        description: Opus decides and accepts; Haiku does bounded work, Sonnet reviews by running it, Opus handles hard or risky work. Cheap tier cannot run high-impact actions.
+        name: Tiered (worker / reviewer / arbiter)
+        description: The main model decides and accepts; a cheap worker does bounded work, a reviewer checks it by running it, an arbiter handles hard or risky work. Tier models are chosen on the Plugins page. The worker tier cannot run high-impact actions.
         order: 0
         plugins:
           - id: persona
@@ -98,39 +104,15 @@
                 name: '@deepseek-ai/dsh-tool-subagent-control'
               - id: tool-subagent-list-agents
                 name: '@deepseek-ai/dsh-tool-subagent-control/list-agents'
-              # Pinned tiers. maxDepth 1: only the top-level agent may delegate;
-              # tier children cannot spawn further children.
-              - id: tool-subagent-haiku
-                name: '@deepseek-ai/dsh-tool-subagent'
+              # The three tier tools (subagent_worker / subagent_reviewer /
+              # subagent_arbiter) are mounted by the tier-kit-agent row below from
+              # the models chosen on the Plugins page (Host row `tier-kit`).
+              - id: tier-kit-agent
+                name: '@local/dsh-tier-kit/agent'
                 config:
-                  provider: spawn
-                  toolName: subagent_haiku
-                  maxDepth: 1
-                  agentOptions:
-                    provider: factory-claude
-                    model: claude-haiku-5-5
-                    reasoningEffort: medium
-              - id: tool-subagent-sonnet
-                name: '@deepseek-ai/dsh-tool-subagent'
-                config:
-                  provider: spawn
-                  toolName: subagent_sonnet
-                  maxDepth: 1
-                  agentOptions:
-                    provider: factory-claude
-                    model: claude-sonnet-5-5
-                    # Explicit effort: Sonnet 5.5 rejects thinking {type: disabled}.
-                    reasoningEffort: high
-              - id: tool-subagent-opus
-                name: '@deepseek-ai/dsh-tool-subagent'
-                config:
-                  provider: spawn
-                  toolName: subagent_opus
-                  maxDepth: 1
-                  agentOptions:
-                    provider: factory-claude
-                    model: claude-opus-5-5
-                    reasoningEffort: high
+                  # The worker tier is guarded through its live route; list extra
+                  # always-guarded models here (bare id or provider/model).
+                  guardedModels: []
               - id: tool-subagent-fork
                 name: '@deepseek-ai/dsh-tool-subagent'
                 config:
@@ -142,11 +124,6 @@
                   provider: spawn
               - id: tool-workflow
                 name: '@deepseek-ai/dsh-tool-workflow'
-          - id: tier-kit
-            name: '@local/dsh-tier-kit'
-            config:
-              guardedModels:
-                - claude-haiku-5-5
           - id: tool-ask-user
             name: '@deepseek-ai/dsh-tool-ask-user'
           - id: tool-todo

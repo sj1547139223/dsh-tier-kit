@@ -1,27 +1,46 @@
 {
   "name": "@local/dsh-tier-kit",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
-  "description": "Tiered Claude delegation for DeepSeek Harness: a `tiered` agent preset with pinned Haiku/Sonnet/Opus subagent tools, a difficulty-routing policy prompt, and a cheap-tier high-impact action guard.",
+  "description": "Tiered delegation for DeepSeek Harness: a `tiered` agent preset with worker / reviewer / arbiter subagent tools whose models are chosen on the Plugins page, a difficulty-routing policy prompt, and a cheap-tier high-impact action guard.",
   "license": "MIT",
-  "main": "./lib/index.js",
+  "main": "./lib/settings.js",
   "exports": {
-    ".": "./lib/index.js",
+    ".": "./lib/settings.js",
+    "./agent": "./lib/agent.js",
+    "./client": "./client.js",
     "./package.json": "./package.json"
   },
-  "files": ["lib", "templates", "cordis.patch.yml", "README.md"],
+  "files": ["lib", "client.js", "templates", "cordis.patch.yml", "README.md"],
   "engines": {
     "node": "^22.19 || >=24",
     "dsh": ">=0.2.1-rc.3"
   },
+  "peerDependencies": {
+    "@deepseek-ai/cordis": "*",
+    "@deepseek-ai/schemastery": "*"
+  },
+  "peerDependenciesMeta": {
+    "@deepseek-ai/cordis": { "optional": true },
+    "@deepseek-ai/schemastery": { "optional": true }
+  },
   "scripts": {
-    "test": "node --test test/",
-    "check": "node --check lib/index.js && node --check lib/rules.js"
+    "test": "node --test-isolation=none --test \"test/*.test.mjs\"",
+    "check": "node --check lib/agent.js && node --check lib/rules.js && node --check lib/tiers.js && node --check lib/settings.js && node --check client.js"
   },
   "dsh": {
     "bundle": {
       "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "inject": [
+        "@deepseek-ai/dsh-client-locale",
+        "@deepseek-ai/dsh-client-ui-settings",
+        "@deepseek-ai/dsh-client-ui-plugin-manager",
+        "@deepseek-ai/dsh-api-remotes"
+      ]
     }
   }
 }
