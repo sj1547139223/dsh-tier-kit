@@ -5,6 +5,15 @@
   "type": "module",
   "description": "Tiered delegation for DeepSeek Harness: a `tiered` agent preset with worker / reviewer / arbiter subagent tools whose models are chosen on the Plugins page, a difficulty-routing policy prompt, and a cheap-tier high-impact action guard.",
   "license": "MIT",
+  "author": "sj1547139223",
+  "homepage": "https://github.com/sj1547139223/dsh-tier-kit#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sj1547139223/dsh-tier-kit.git"
+  },
+  "bugs": {
+    "url": "https://github.com/sj1547139223/dsh-tier-kit/issues"
+  },
   "main": "./lib/settings.js",
   "exports": {
     ".": "./lib/settings.js",
@@ -12,7 +21,7 @@
     "./client": "./client.js",
     "./package.json": "./package.json"
   },
-  "files": ["lib", "client.js", "templates", "cordis.patch.yml", "README.md"],
+  "files": ["lib", "client.js", "templates", "cordis.patch.yml", "README.md", "LICENSE"],
   "engines": {
     "node": "^22.19 || >=24",
     "dsh": ">=0.2.1-rc.3"
