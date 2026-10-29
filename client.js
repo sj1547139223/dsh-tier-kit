@@ -190,8 +190,23 @@ window.__ModuleLoader__.load({
             }, effortOptions))))
     }
 
+    // Stores may expose prototype methods (ConfigFormController does), so call
+    // them as methods; never pass them unbound.
     function useStore(store) {
-      return React.useSyncExternalStore(store.subscribe, store.getSnapshot)
+      const subscribe = React.useCallback((fn) => store.subscribe(fn), [store])
+      const getSnapshot = React.useCallback(() => store.getSnapshot(), [store])
+      return React.useSyncExternalStore(subscribe, getSnapshot)
+    }
+
+    /** Shows a render failure on the page instead of an empty section. */
+    class Boundary extends React.Component {
+      constructor(props) { super(props); this.state = { error: null } }
+      static getDerivedStateFromError(error) { return { error } }
+      componentDidCatch(error) { console.error('[dsh-tier-kit] settings page failed', error) }
+      render() {
+        if (this.state.error) return h('p', { className: 'dtk-error', role: 'alert' }, 'dsh-tier-kit: ' + (this.state.error?.message ?? String(this.state.error)))
+        return this.props.children
+      }
     }
 
     function makePage(ctx, form, catalog) {
@@ -282,12 +297,13 @@ window.__ModuleLoader__.load({
         const catalog = createCatalog(ctx)
         ctx.effect(() => ctx.remote.$on('llm/adapters-updated', () => { catalog.load() }), 'dsh-tier-kit: adapter invalidations')
         ctx.effect(() => ctx.on('connection/reset', () => { catalog.load() }), 'dsh-tier-kit: reconnect')
-        const Page = makePage(ctx, form, catalog)
+        const Inner = makePage(ctx, form, catalog)
+        const Page = (props) => h(Boundary, null, h(Inner, props))
+        // Same shape as the official cot-translation bundle page: name, key, locale.
         ctx.effect(() => ctx.configForms.whileServed([NS], () => ctx.slots.inject('plugins.bundle.config', () => ctx.slots.register({
           name: 'plugins.bundle.config',
           key: PKG,
           locale: LOCALE,
-          label: () => ctx.locale.bind(LOCALE)('title'),
         }, Page))), 'dsh-tier-kit: plugins page')
       },
     }
